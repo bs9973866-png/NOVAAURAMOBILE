@@ -263,7 +263,7 @@ private fun NovauraHome() {
                                         if (version.id == selectedVersion) Color(0xFF382451) else Panel,
                                         label = "versionColor"
                                     )
-                                    val active = if (motionEnabled) animatedColor else {
+                                    val active = if (motionEnabled && !lowEffects) animatedColor else {
                                         if (version.id == selectedVersion) Color(0xFF382451) else Panel
                                     }
                                     Row(
