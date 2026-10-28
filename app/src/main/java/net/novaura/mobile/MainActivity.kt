@@ -1,5 +1,6 @@
 package net.novaura.mobile
 
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -34,6 +35,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -49,6 +51,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.Dispatchers
@@ -82,10 +85,15 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 private fun NovauraHome() {
+    val context = LocalContext.current
+    val preferences = remember(context) { context.getSharedPreferences("novaura_preferences", Context.MODE_PRIVATE) }
+    var motionEnabled by remember { mutableStateOf(preferences.getBoolean("motion_enabled", true)) }
+    var companionHints by remember { mutableStateOf(preferences.getBoolean("companion_hints", true)) }
+    var lowEffects by remember { mutableStateOf(preferences.getBoolean("low_effects", false)) }
     var versions by remember { mutableStateOf<List<MinecraftVersion>>(emptyList()) }
     var versionSearch by remember { mutableStateOf("") }
     var versionFilter by remember { mutableStateOf("release") }
-    var selectedVersion by remember { mutableStateOf("Загрузка каталога…") }
+    var selectedVersion by remember { mutableStateOf(preferences.getString("selected_version", "Загрузка каталога…") ?: "Загрузка каталога…") }
     var loading by remember { mutableStateOf(true) }
     var error by remember { mutableStateOf<String?>(null) }
     var showVersions by remember { mutableStateOf(false) }
