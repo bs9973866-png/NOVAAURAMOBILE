@@ -99,7 +99,7 @@ private fun NovauraHome() {
                     setRequestProperty("Accept", "application/json")
                 }
                 try {
-                    if (connection.responseCode !in 200..299) error("HTTP ${connection.responseCode}")
+                    if (connection.responseCode !in 200..299) throw IllegalStateException("HTTP ${connection.responseCode}")
                     val body = connection.inputStream.bufferedReader().use { it.readText() }
                     val json = JSONObject(body)
                     val items = json.getJSONArray("versions")
