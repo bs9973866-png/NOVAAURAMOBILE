@@ -134,6 +134,7 @@ private fun NovauraHome() {
             versions = result
             if (result.none { it.id == selectedVersion }) {
                 selectedVersion = result.firstOrNull { it.type == "release" }?.id ?: result.firstOrNull()?.id ?: "Нет версий"
+                preferences.edit().putString("selected_version", selectedVersion).apply()
             }
         } catch (e: Exception) {
             error = "Не удалось получить каталог Minecraft. Проверь интернет и повтори попытку."
@@ -258,10 +259,20 @@ private fun NovauraHome() {
                                 verticalArrangement = Arrangement.spacedBy(6.dp)
                             ) {
                                 items(visibleVersions.take(250), key = { it.id }) { version ->
-                                    val active by animateColorAsState(if (version.id == selectedVersion) Color(0xFF382451) else Panel, label = "versionColor")
+                                    val animatedColor by animateColorAsState(
+                                        if (version.id == selectedVersion) Color(0xFF382451) else Panel,
+                                        label = "versionColor"
+                                    )
+                                    val active = if (motionEnabled) animatedColor else {
+                                        if (version.id == selectedVersion) Color(0xFF382451) else Panel
+                                    }
                                     Row(
                                         modifier = Modifier.fillMaxWidth().background(active, RoundedCornerShape(12.dp))
-                                            .clickable { selectedVersion = version.id; showVersions = false }
+                                            .clickable {
+                                                selectedVersion = version.id
+                                                preferences.edit().putString("selected_version", version.id).apply()
+                                                showVersions = false
+                                            }
                                             .padding(horizontal = 14.dp, vertical = 12.dp),
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
