@@ -303,21 +303,75 @@ private fun NovauraHome() {
                     QuickAction("Настройки", Icons.Default.Settings, Modifier.weight(1f)) { selectedTab = "Настройки" }
                     QuickAction("Ишка", Icons.Default.AutoAwesome, Modifier.weight(1f)) { selectedTab = "Ишка" }
                 }
-                if (selectedTab != "Главная") {
+                if (selectedTab == "Настройки") {
+                    Column(
+                        modifier = Modifier.fillMaxWidth()
+                            .background(Panel, RoundedCornerShape(18.dp)).padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(14.dp)
+                    ) {
+                        Text("ПОВЕДЕНИЕ ЛАУНЧЕРА", color = White, fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
+                        SettingToggle(
+                            title = "Анимации интерфейса",
+                            subtitle = "Плавная подсветка и смена состояний",
+                            checked = motionEnabled,
+                            onCheckedChange = {
+                                motionEnabled = it
+                                preferences.edit().putBoolean("motion_enabled", it).apply()
+                            }
+                        )
+                        SettingToggle(
+                            title = "Подсказки Ишки",
+                            subtitle = "Короткие советы на главной",
+                            checked = companionHints,
+                            onCheckedChange = {
+                                companionHints = it
+                                preferences.edit().putBoolean("companion_hints", it).apply()
+                            }
+                        )
+                        SettingToggle(
+                            title = "Сниженные эффекты",
+                            subtitle = "Режим для менее мощных устройств",
+                            checked = lowEffects,
+                            onCheckedChange = {
+                                lowEffects = it
+                                preferences.edit().putBoolean("low_effects", it).apply()
+                            }
+                        )
+                        Text("Настройки сохраняются на устройстве.", color = Muted, fontSize = 11.sp)
+                    }
+                } else if (selectedTab != "Главная") {
                     Text(selectedTab, color = Pink, fontSize = 18.sp, fontWeight = FontWeight.Bold)
                     Text(
                         when (selectedTab) {
                             "Моды" -> "Менеджер модов будет подключён следующим этапом."
-                            "Настройки" -> "Здесь появятся настройки графики, памяти и оформления."
                             else -> "ИИ-помощник будет работать через настраиваемый API; ключи не хранятся в APK."
                         },
                         color = Muted, fontSize = 12.sp
                     )
                 }
+                if (companionHints && selectedTab == "Главная") {
+                    Text("ИШКА • Совет: выбери версию, затем настрой профиль и моды.", color = Muted, fontSize = 10.sp)
+                }
                 Spacer(Modifier.weight(1f))
                 Text("NOVAURA • EARLY DEVELOPMENT BUILD", color = Color(0xFF625977), fontSize = 9.sp, letterSpacing = 1.sp)
             }
         }
+    }
+}
+
+@Composable
+private fun SettingToggle(
+    title: String,
+    subtitle: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit
+) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Column(Modifier.weight(1f)) {
+            Text(title, color = White, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+            Text(subtitle, color = Muted, fontSize = 10.sp)
+        }
+        Switch(checked = checked, onCheckedChange = onCheckedChange)
     }
 }
 
