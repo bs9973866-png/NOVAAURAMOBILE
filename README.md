@@ -46,3 +46,16 @@ Output: `app/build/outputs/apk/debug/app-debug.apk`.
 - Do not ship API secrets inside the APK.
 - Verify downloaded artifacts using published checksums when available.
 - Do not claim game-launch support until the required runtime, libraries and launch pipeline are implemented and tested.
+
+
+## Milestone 2 — version catalog
+
+The version selector now parses the Mojang manifest's version type and supports:
+- Release versions.
+- Snapshots.
+- Legacy Beta and Alpha entries when present in the manifest.
+- Text search by version ID.
+- Type filters and a visible result count.
+- A larger filtered result list and an explicit refresh action.
+
+Important: catalog selection is not installation. The launcher still does not download the selected Minecraft client, libraries or assets, and does not launch the game. Legacy entries are listed only when Mojang's manifest provides them; listing a version does not guarantee that a modern Android runtime can launch it.
