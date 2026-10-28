@@ -31,6 +31,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -63,6 +65,8 @@ private val Pink = Color(0xFFFF4FD8)
 private val Muted = Color(0xFFA9A0BD)
 private val White = Color(0xFFF7F3FF)
 
+private data class MinecraftVersion(val id: String, val type: String)
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -78,7 +82,9 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 private fun NovauraHome() {
-    var versions by remember { mutableStateOf<List<String>>(emptyList()) }
+    var versions by remember { mutableStateOf<List<MinecraftVersion>>(emptyList()) }
+    var versionSearch by remember { mutableStateOf("") }
+    var versionFilter by remember { mutableStateOf("release") } }
     var selectedVersion by remember { mutableStateOf("Загрузка каталога…") }
     var loading by remember { mutableStateOf(true) }
     var error by remember { mutableStateOf<String?>(null) }
@@ -106,7 +112,11 @@ private fun NovauraHome() {
                     buildList {
                         for (i in 0 until items.length()) {
                             val item = items.getJSONObject(i)
-                            if (item.optString("type") == "release") add(item.optString("id"))
+                            val id = item.optString("id")
+                            val type = item.optString("type")
+                            if (id.isNotBlank() && type in setOf("release", "snapshot", "old_beta", "old_alpha")) {
+                                add(MinecraftVersion(id, type))
+                            }
                         }
                     }
                 } finally {
@@ -114,7 +124,9 @@ private fun NovauraHome() {
                 }
             }
             versions = result
-            if (selectedVersion !in result) selectedVersion = result.firstOrNull() ?: "Нет версий"
+            if (result.none { it.id == selectedVersion }) {
+                selectedVersion = result.firstOrNull { it.type == "release" }?.id ?: result.firstOrNull()?.id ?: "Нет версий"
+            }
         } catch (e: Exception) {
             error = "Не удалось получить каталог Minecraft. Проверь интернет и повтори попытку."
             if (versions.isEmpty()) selectedVersion = "Каталог недоступен"
@@ -188,8 +200,29 @@ private fun NovauraHome() {
 
             if (showVersions) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("РЕЛИЗЫ MINECRAFT", color = White, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
+                    Text("КАТАЛОГ MINECRAFT", color = White, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
                     TextButton(onClick = { scope.launch { refreshVersions() } }) { Text("Обновить", color = Pink) }
+                }
+                OutlinedTextField(
+                    value = versionSearch,
+                    onValueChange = { versionSearch = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    label = { Text("Поиск версии", color = Muted) },
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = White,
+                        unfocusedTextColor = White,
+                        focusedBorderColor = Pink,
+                        unfocusedBorderColor = Color(0xFF514365),
+                        cursorColor = Pink
+                    )
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    listOf("release" to "Релизы", "snapshot" to "Снапшоты", "old" to "Beta / Alpha").forEach { (key, label) ->
+                        TextButton(onClick = { versionFilter = key }) {
+                            Text(label, color = if (versionFilter == key) Pink else Muted, fontSize = 11.sp)
+                        }
+                    }
                 }
                 when {
                     loading -> Row(verticalAlignment = Alignment.CenterVertically) {
@@ -201,20 +234,44 @@ private fun NovauraHome() {
                         Text(error!!, color = Color(0xFFFF9AAE), fontSize = 12.sp)
                         TextButton(onClick = { scope.launch { refreshVersions() } }) { Text("Повторить", color = Pink) }
                     }
-                    else -> LazyColumn(
-                        modifier = Modifier.weight(1f, fill = false).height(220.dp),
-                        verticalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        items(versions.take(80)) { version ->
-                            val active by animateColorAsState(if (version == selectedVersion) Color(0xFF382451) else Panel, label = "versionColor")
-                            Row(
-                                modifier = Modifier.fillMaxWidth().background(active, RoundedCornerShape(12.dp))
-                                    .clickable { selectedVersion = version; showVersions = false }
-                                    .padding(horizontal = 14.dp, vertical = 12.dp),
-                                verticalAlignment = Alignment.CenterVertically
+                    else -> {
+                        val visibleVersions = versions.filter { version ->
+                            val typeMatches = when (versionFilter) {
+                                "snapshot" -> version.type == "snapshot"
+                                "old" -> version.type == "old_beta" || version.type == "old_alpha"
+                                else -> version.type == "release"
+                            }
+                            typeMatches && version.id.contains(versionSearch.trim(), ignoreCase = true)
+                        }
+                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Text("Найдено: ${visibleVersions.size}", color = Muted, fontSize = 10.sp)
+                            LazyColumn(
+                                modifier = Modifier.weight(1f, fill = false).height(220.dp),
+                                verticalArrangement = Arrangement.spacedBy(6.dp)
                             ) {
-                                Text(version, color = White, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
-                                if (version == selectedVersion) Text("ВЫБРАНО", color = Pink, fontSize = 9.sp)
+                                items(visibleVersions.take(250), key = { it.id }) { version ->
+                                    val active by animateColorAsState(if (version.id == selectedVersion) Color(0xFF382451) else Panel, label = "versionColor")
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth().background(active, RoundedCornerShape(12.dp))
+                                            .clickable { selectedVersion = version.id; showVersions = false }
+                                            .padding(horizontal = 14.dp, vertical = 12.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Column(Modifier.weight(1f)) {
+                                            Text(version.id, color = White, fontWeight = FontWeight.SemiBold)
+                                            Text(
+                                                when (version.type) {
+                                                    "snapshot" -> "Снапшот"
+                                                    "old_beta" -> "Старая Beta"
+                                                    "old_alpha" -> "Старая Alpha"
+                                                    else -> "Релиз"
+                                                },
+                                                color = Muted, fontSize = 10.sp
+                                            )
+                                        }
+                                        if (version.id == selectedVersion) Text("ВЫБРАНО", color = Pink, fontSize = 9.sp)
+                                    }
+                                }
                             }
                         }
                     }
