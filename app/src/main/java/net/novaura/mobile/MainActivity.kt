@@ -222,10 +222,10 @@ private fun NovauraHome() {
             } else {
                 Text("БЫСТРЫЙ ДОСТУП", color = Muted, fontSize = 10.sp, letterSpacing = 2.sp, fontWeight = FontWeight.Bold)
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    QuickAction("Версии", Icons.Default.CloudDownload) { showVersions = true }
-                    QuickAction("Моды", Icons.Default.Extension) { selectedTab = "Моды" }
-                    QuickAction("Настройки", Icons.Default.Settings) { selectedTab = "Настройки" }
-                    QuickAction("Ишка", Icons.Default.AutoAwesome) { selectedTab = "Ишка" }
+                    QuickAction("Версии", Icons.Default.CloudDownload, Modifier.weight(1f)) { showVersions = true }
+                    QuickAction("Моды", Icons.Default.Extension, Modifier.weight(1f)) { selectedTab = "Моды" }
+                    QuickAction("Настройки", Icons.Default.Settings, Modifier.weight(1f)) { selectedTab = "Настройки" }
+                    QuickAction("Ишка", Icons.Default.AutoAwesome, Modifier.weight(1f)) { selectedTab = "Ишка" }
                 }
                 if (selectedTab != "Главная") {
                     Text(selectedTab, color = Pink, fontSize = 18.sp, fontWeight = FontWeight.Bold)
@@ -249,10 +249,11 @@ private fun NovauraHome() {
 private fun QuickAction(
     label: String,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
+    modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
     Column(
-        modifier = Modifier.weight(1f).clickable(onClick = onClick)
+        modifier = modifier.clickable(onClick = onClick)
             .background(Panel, RoundedCornerShape(16.dp)).padding(vertical = 14.dp, horizontal = 4.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp)
