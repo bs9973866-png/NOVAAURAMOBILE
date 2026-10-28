@@ -84,7 +84,7 @@ class MainActivity : ComponentActivity() {
 private fun NovauraHome() {
     var versions by remember { mutableStateOf<List<MinecraftVersion>>(emptyList()) }
     var versionSearch by remember { mutableStateOf("") }
-    var versionFilter by remember { mutableStateOf("release") } }
+    var versionFilter by remember { mutableStateOf("release") }
     var selectedVersion by remember { mutableStateOf("Загрузка каталога…") }
     var loading by remember { mutableStateOf(true) }
     var error by remember { mutableStateOf<String?>(null) }
